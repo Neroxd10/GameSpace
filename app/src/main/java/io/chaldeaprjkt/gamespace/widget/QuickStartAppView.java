@@ -3,6 +3,7 @@ package io.chaldeaprjkt.gamespace.widget;
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
 import android.app.WindowConfiguration;
+import android.app.ActivityManager.RunningTaskInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -120,6 +121,25 @@ public class QuickStartAppView extends LinearLayout {
     }
 
     private void launchAppInFreeformMode(String packageName) {
+        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        boolean isInFreeformMode = false;
+
+        if (am != null) {
+            // Check if the app is already running in freeform mode
+            for (RunningTaskInfo task : am.getRunningTasks(Integer.MAX_VALUE)) {
+                if (task.baseActivity != null && task.baseActivity.getPackageName().equals(packageName)) {
+                    if (task.configuration.windowConfiguration.getWindowingMode() == android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM) {
+                        isInFreeformMode = true;
+                        break;
+                    }
+                }
+        }
+
+        // Force stop the app if it's not in freeform mode
+            if (!isInFreeformMode) {
+                am.forceStopPackage(packageName);
+            }
+        }
         WindowManager windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         Display display = windowManager.getDefaultDisplay();
         Point screenSize = new Point();
